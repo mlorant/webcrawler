@@ -8,3 +8,7 @@ MAX_THREADS = 5
 ROBOTS_TXT_CACHE = 60 * 5
 
 USER_AGENT = 'LeFatCrawler'
+
+MAX_PAGES_TO_CRAWL = 1000
+
+LOG_FILE = 'crawl.log'

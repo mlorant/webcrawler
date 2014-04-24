@@ -2,6 +2,7 @@
 import logging
 import threading
 import urlparse
+import sys
 
 # Third-parties
 import bs4 as BeautifulSoup
@@ -15,12 +16,29 @@ except NameError:
 # Own files
 import settings
 
+# Clean the log file
+if not "--no-clean-log" in sys.argv:
+    with open(settings.LOG_FILE, 'w'):
+        pass
+
+# Set up logger file
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.FileHandler(settings.LOG_FILE)
+handler.setLevel(logging.DEBUG)
+
+fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(fmt)
+logger.addHandler(handler)
+
 
 class Crawler(object):
 
     def __init__(self):
         self.queue = list(settings.START_URLS)
         self.nb_threads = 0
+        self.nb_crawled = 0
 
     def start(self):
         """
@@ -42,8 +60,9 @@ class Crawler(object):
         """
         Callback called at the end of the fetching of one page
         """
-        print "done"
-        if len(self.queue) > 0:
+        self.nb_crawled += 1
+
+        if len(self.queue) > 0 and self.nb_crawled < settings.MAX_PAGES_TO_CRAWL:
             self.start_thread()
 
     def fetch_page(self, url):
@@ -65,12 +84,12 @@ class Crawler(object):
 
             if req.status_code == 200:
                 urls = []  # mangeurDURL(req)
-
+                logger.info("%s crawled, %s outlink retrieved" % (url, len(urls)))
                 self.queue.extend(urls)
             else:
-                print "HTTP response: %s" % req.status_code
+                logger.warning("Error when requesting %s: HTTP response %s" % (url, req.status_code))
         else:
-            print "Forbidden: %s" % url
+            logger.info("Crawling %s is forbidden by robots.txt rules" % url)
 
         self.on_thread_finished()
 
