@@ -7,7 +7,7 @@ from settings import DATABASE
 
 
 class Page(peewee.Model):
-    url = peewee.CharField()
+    url = peewee.CharField(unique=True)
     date_update = peewee.DateTimeField(default=datetime.now)
     content_hash = peewee.CharField()
 

@@ -43,6 +43,7 @@ class Crawler(object):
         self.queue = list(settings.START_URLS)
         self.nb_threads = 0
         self.nb_crawled = 0
+        self.urls_crawled = []
 
     def start(self):
         """
@@ -74,6 +75,8 @@ class Crawler(object):
         Fetch and parse the page. Returns a BeautifulSoup object
         """
 
+        self.urls_crawled.append(url)
+
         scheme = urlparse.urlparse(url).scheme
         hostname = urlparse.urlparse(url).hostname
         rp = RobotFileParser(url="%s://%s/robots.txt" % (scheme, hostname))
@@ -89,8 +92,12 @@ class Crawler(object):
             if req.status_code == 200:
                 logger.debug("Start fetching %s" % url)
                 urls = URL_processer(req)
-                logger.info("%s crawled, %s outlink retrieved" % (url, len(urls)))
-                self.queue.extend(urls)
+
+                # Add only url not already crawled
+                not_crawled = [u for u in urls if u not in self.urls_crawled]
+                self.queue.extend(not_crawled)
+                logger.info("%s crawled, %s outlink retrieved" %
+                            (url, len(not_crawled)))
             else:
                 logger.warning("Error when requesting %s: HTTP response %s" % (url, req.status_code))
         else:

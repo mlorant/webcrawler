@@ -16,7 +16,7 @@ def URL_processer(request):
     [x.extract() for x in soup.findAll('script')]
 
     # Remove comments
-    comments = soup.findAll(text=lambda text:isinstance(text, Comment))
+    comments = soup.findAll(text=lambda text: isinstance(text, Comment))
     [comment.extract() for comment in comments]
 
     # Get all text
@@ -31,24 +31,20 @@ def URL_processer(request):
     counts.update(word.strip('.,?!"\'').lower() for word in string.split())
 
     # Update DB woth counts
-    page = Page()
-    page.url = my_url
-    page.content_hash = ""
-    Page.save(page)
-    print "start word count"
-    for key, value in counts.iteritems():
-        wordcnt = WordCount()
-        wordcnt.word = key
-        wordcnt.occurences = value 
-        wordcnt.page_id = page.id
-        WordCount.save(wordcnt)
-    print "end wc"
+    page = Page.get_or_create(
+        url=my_url,
+        content_hash='',
+    )
+    
+    WordCount.insert_many(
+        [{'word': word, 'occurences': nb, 'page_id': page.id}
+            for (word, nb) in counts.iteritems()]
+    )
 
     # get URLs
     urls = soup.findAll("a")
     regex = re.compile(r'^http')
-    filtered = [i['href'] for i in urls if regex.search(i['href'])]
-
+    filtered = [i['href'] for i in urls if i.has_attr('href') and regex.search(i['href'])]
 
     return filtered
 
