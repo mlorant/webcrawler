@@ -6,6 +6,7 @@ import sys
 
 # Third-parties
 import bs4 as BeautifulSoup
+from peewee import *
 import requests
 
 try:
@@ -14,6 +15,7 @@ except NameError:
     from urllib.robotparser import RobotFileParser
 
 # Own files
+from mangeur import URL_processer
 import settings
 
 # Clean the log file
@@ -25,12 +27,14 @@ if not "--no-clean-log" in sys.argv:
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler(settings.LOG_FILE)
-handler.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+file_handler = logging.FileHandler(settings.LOG_FILE)
+file_handler.setLevel(logging.DEBUG)
 
 fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(fmt)
-logger.addHandler(handler)
+file_handler.setFormatter(fmt)
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
 
 
 class Crawler(object):
@@ -83,7 +87,8 @@ class Crawler(object):
             req = requests.get(url, headers=headers)
 
             if req.status_code == 200:
-                urls = []  # mangeurDURL(req)
+                logger.debug("Start fetching %s" % url)
+                urls = URL_processer(req)
                 logger.info("%s crawled, %s outlink retrieved" % (url, len(urls)))
                 self.queue.extend(urls)
             else:
@@ -95,5 +100,8 @@ class Crawler(object):
 
 
 if __name__ == "__main__":
+    database = SqliteDatabase('peewee.db')
+    database.connect()
+
     a = Crawler()
     a.start()

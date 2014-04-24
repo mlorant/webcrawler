@@ -35,14 +35,14 @@ def URL_processer(request):
     page.url = my_url
     page.content_hash = ""
     Page.save(page)
-
+    print "start word count"
     for key, value in counts.iteritems():
         wordcnt = WordCount()
         wordcnt.word = key
         wordcnt.occurences = value 
         wordcnt.page_id = page.id
         WordCount.save(wordcnt)
-
+    print "end wc"
 
     # get URLs
     urls = soup.findAll("a")

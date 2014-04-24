@@ -3,7 +3,7 @@ START_URLS = ('http://www.aau.dk',
               'http://www.d8.tv',
               'https://www.facebook.com')
 
-MAX_THREADS = 5
+MAX_THREADS = 1
 
 ROBOTS_TXT_CACHE = 60 * 5
 
