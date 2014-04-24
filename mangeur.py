@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup, Comment
 from collections import Counter
 import re
 import requests
-import models
+from models import *
+from peewee import *
 
 
 def URL_processer(request):
@@ -29,13 +30,14 @@ def URL_processer(request):
     counts = Counter()
     counts.update(word.strip('.,?!"\'').lower() for word in string.split())
 
-    # Update BDD woth counts
+    # Update DB woth counts
     page = Page()
     page.url = my_url
+    page.content_hash = ""
     Page.save(page)
 
-    for key, value in counts.iteritems()
-        wordcnt = WordCounts()
+    for key, value in counts.iteritems():
+        wordcnt = WordCount()
         wordcnt.word = key
         wordcnt.occurences = value 
         wordcnt.page_id = page.id
@@ -51,7 +53,8 @@ def URL_processer(request):
     return filtered
 
 if __name__ == "__main__":   
-
+    database = SqliteDatabase('peewee.db')
+    database.connect()
 
     url = 'http://www.d8.tv/d8-series/pid6654-d8-longmire.html'
     r = requests.get(url)
