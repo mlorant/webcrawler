@@ -23,6 +23,5 @@ if __name__ == "__main__":
             WordCount.create_table()
         except peewee.OperationalError:
             print("An error occured, too bad.")
-            return -1
 
         print("Done!")
