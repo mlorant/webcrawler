@@ -2,9 +2,14 @@ from urllib2 import urlopen
 from bs4 import BeautifulSoup, Comment
 from collections import Counter
 import re
+import requests
 
 
-def mangeurDURL(soup):
+def URL_processer(request):
+	# Fetch
+	soup = BeautifulSoup(request.text)
+	my_url = request.request.url
+
 	# Remove <script>
 	[x.extract() for x in soup.findAll('script')]
 
@@ -24,7 +29,7 @@ def mangeurDURL(soup):
 	counts.update(word.strip('.,?!"\'').lower() for word in string.split())
 
 	# Update BDD woth counts
-
+	
 
 	# get URLs
 	urls = soup.findAll("a")
@@ -36,7 +41,8 @@ def mangeurDURL(soup):
 
 
 url = 'http://www.d8.tv/d8-series/pid6654-d8-longmire.html'
-urls = mangeurDURL(url)
+r = requests.get(url)
+urls = mangeurDURL(r)
 
 for url in urls:
 	print(url)
