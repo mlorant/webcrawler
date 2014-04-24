@@ -100,8 +100,7 @@ class Crawler(object):
 
 
 if __name__ == "__main__":
-    database = SqliteDatabase('peewee.db')
-    database.connect()
-
+    from settings import DATABASE
+    DATABASE.connect()
     a = Crawler()
     a.start()
