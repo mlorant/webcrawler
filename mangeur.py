@@ -4,11 +4,7 @@ from collections import Counter
 import re
 
 
-def mangeurDURL(url):
-	# Fetch
-	html = urlopen(url).read()
-	soup = BeautifulSoup(html)
-
+def mangeurDURL(soup):
 	# Remove <script>
 	[x.extract() for x in soup.findAll('script')]
 
@@ -30,8 +26,7 @@ def mangeurDURL(url):
 	# Update BDD woth counts
 
 
-
-	
+	# get URLs
 	urls = soup.findAll("a")
 	regex = re.compile(r'^http')
 	filtered = [i['href'] for i in urls if regex.search(i['href'])]
