@@ -38,8 +38,15 @@ if __name__ == "__main__":
         create_database()
         print("Done!")
     elif "clean" in sys.argv:
+        """
         print("Deleting old database...")
         map(lambda x: os.remove(x), glob.glob('*.db'))
         print("Recreating fresh database...")
         create_database()
+        """
+        print("Cleaning old database...")
+        delete_query = Page.delete()
+        delete_query.execute()
+        delete_query = WordCount.delete()
+        delete_query.execute()
         print("Done!")
