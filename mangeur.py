@@ -39,7 +39,7 @@ def URL_processer(request):
     WordCount.insert_many(
         [{'word': word, 'occurences': nb, 'page_id': page.id}
             for (word, nb) in counts.iteritems()]
-    )
+    ).execute()
 
     # get URLs
     urls = soup.findAll("a")
