@@ -3,6 +3,7 @@ import logging
 import threading
 import urlparse
 import sys
+import sqlite3
 
 # Third-parties
 import bs4 as BeautifulSoup
@@ -76,32 +77,37 @@ class Crawler(object):
         """
 
         self.urls_crawled.append(url)
-
         scheme = urlparse.urlparse(url).scheme
         hostname = urlparse.urlparse(url).hostname
         rp = RobotFileParser(url="%s://%s/robots.txt" % (scheme, hostname))
-        rp.read()
 
-        if rp.can_fetch(settings.USER_AGENT, url):
-            headers = {
-                'User-Agent': settings.USER_AGENT,
-            }
+        try:
+            rp.read()
 
-            req = requests.get(url, headers=headers)
+            if rp.can_fetch(settings.USER_AGENT, url):
+                headers = {
+                    'User-Agent': settings.USER_AGENT,
+                }
 
-            if req.status_code == 200:
-                logger.debug("Start fetching %s" % url)
-                urls = URL_processer(req)
 
-                # Add only url not already crawled
-                not_crawled = [u for u in urls if u not in self.urls_crawled]
-                self.queue.extend(not_crawled)
-                logger.info("%s crawled, %s outlink retrieved" %
-                            (url, len(not_crawled)))
+
+                req = requests.get(url, headers=headers)
+
+                if req.status_code == 200:
+                    logger.debug("Start fetching %s" % url)
+                    urls = URL_processer(req)
+
+                    # Add only url not already crawled
+                    not_crawled = [u for u in urls if u not in self.urls_crawled]
+                    self.queue.extend(not_crawled)
+                    logger.info("%s crawled, %s outlink retrieved" %
+                                (url, len(not_crawled)))
+                else:
+                    logger.warning("Error when requesting %s: HTTP response %s" % (url, req.status_code))
             else:
-                logger.warning("Error when requesting %s: HTTP response %s" % (url, req.status_code))
-        else:
-            logger.info("Crawling %s is forbidden by robots.txt rules" % url)
+                logger.info("Crawling %s is forbidden by robots.txt rules" % url)
+        except:
+            logger.info("Erros when reading robots.txt from %s" % url)
 
         self.on_thread_finished()
 
