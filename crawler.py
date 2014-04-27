@@ -19,24 +19,6 @@ except NameError:
 from mangeur import URL_processer
 import settings
 
-# Clean the log file
-if not "--no-clean-log" in sys.argv:
-    with open(settings.LOG_FILE, 'w'):
-        pass
-
-# Set up logger file
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-stream_handler = logging.StreamHandler()
-file_handler = logging.FileHandler(settings.LOG_FILE)
-file_handler.setLevel(logging.DEBUG)
-
-fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(fmt)
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
-
 
 class Crawler(object):
 
@@ -45,6 +27,19 @@ class Crawler(object):
         self.nb_threads = 0
         self.nb_crawled = 0
         self.urls_crawled = []
+
+    def set_logfile(self, path, level=logging.DEBUG):
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+
+        stream_handler = logging.StreamHandler()
+        file_handler = logging.FileHandler(path)
+        file_handler.setLevel(logging.DEBUG)
+
+        fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(fmt)
+        self.logger.addHandler(file_handler)
+        self.logger.addHandler(stream_handler)
 
     def start(self):
         """
@@ -94,26 +89,19 @@ class Crawler(object):
                 req = requests.get(url, headers=headers)
 
                 if req.status_code == 200:
-                    logger.debug("Start fetching %s" % url)
+                    self.logger.debug("Start fetching %s" % url)
                     urls = URL_processer(req)
 
                     # Add only url not already crawled
                     not_crawled = [u for u in urls if u not in self.urls_crawled]
                     self.queue.extend(not_crawled)
-                    logger.info("%s crawled, %s outlink retrieved" %
+                    self.logger.info("%s crawled, %s outlink retrieved" %
                                 (url, len(not_crawled)))
                 else:
-                    logger.warning("Error when requesting %s: HTTP response %s" % (url, req.status_code))
+                    self.logger.warning("Error when requesting %s: HTTP response %s" % (url, req.status_code))
             else:
-                logger.info("Crawling %s is forbidden by robots.txt rules" % url)
+                self.logger.info("Crawling %s is forbidden by robots.txt rules" % url)
         except:
-            logger.info("Erros when reading robots.txt from %s" % url)
+            self.logger.info("Erros when reading robots.txt from %s" % url)
 
         self.on_thread_finished()
-
-
-if __name__ == "__main__":
-    from settings import DATABASE
-    DATABASE.connect()
-    a = Crawler()
-    a.start()
