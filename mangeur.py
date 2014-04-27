@@ -28,7 +28,7 @@ def URL_processer(request):
 
     # Count words
     counts = Counter()
-    counts.update(word.strip('.,?!"\'').lower() for word in string.split())
+    counts.update(word.lower() for word in string.split() if re.match('^[a-zA-Z0-9_-]+$', word))
 
     # Update DB woth counts
     page = Page.get_or_create(
