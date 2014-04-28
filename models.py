@@ -5,6 +5,8 @@ import os
 import peewee
 from settings import DATABASE
 
+__all__ = ['Page', 'Word', 'WordPage']
+
 
 # URL max size:
 # http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers # noqa
@@ -19,7 +21,7 @@ class Page(peewee.Model):
 
 class Word(peewee.Model):
     word = peewee.CharField()
-    frequency = peewee.DecimalField()
+    frequency = peewee.DecimalField(auto_round=True)
 
     class Meta:
         database = DATABASE
@@ -29,7 +31,7 @@ class WordPage(peewee.Model):
     page = peewee.ForeignKeyField(Page)
     word = peewee.CharField()
     frequency = peewee.DecimalField(auto_round=True)
-    tfidf = peewee.DecimalField(default=0)
+    tfidf = peewee.DecimalField(auto_round=True, default=0)
 
     class Meta:
         database = DATABASE

@@ -11,6 +11,7 @@ import peewee
 
 from crawler import Crawler
 from models import *
+from tfidf import compute_tfidf
 import settings
 
 
@@ -55,8 +56,14 @@ def run(data):
     a.start()
 
 
+def tfidf(data):
+    print("Start computing TF/IDF...")
+    compute_tfidf()
+    print("Done!")
+
+
 # List of commands available
-commands = {'syncdb': syncdb, 'cleandb': cleandb, 'run': run}
+commands = {'syncdb': syncdb, 'cleandb': cleandb, 'run': run, 'tfidf': tfidf}
 
 # Argument parser definition
 parser = argparse.ArgumentParser(
