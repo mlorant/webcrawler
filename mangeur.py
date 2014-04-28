@@ -35,9 +35,9 @@ def URL_processer(request):
         url=my_url,
         content_hash='',
     )
-    
+
     WordCount.insert_many(
-        [{'word': word, 'occurences': nb, 'page_id': page.id}
+        [{'word': word, 'occurences': nb, 'page': page.id}
             for (word, nb) in counts.iteritems()]
     ).execute()
 

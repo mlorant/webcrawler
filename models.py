@@ -16,9 +16,10 @@ class Page(peewee.Model):
 
 
 class WordCount(peewee.Model):
-    page_id = peewee.ForeignKeyField(Page)
+    page = peewee.ForeignKeyField(Page)
     word = peewee.CharField()
     occurences = peewee.IntegerField()
+    tfidf = peewee.DecimalField(default=0)
 
     class Meta:
         database = DATABASE
