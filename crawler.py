@@ -2,8 +2,9 @@
 import logging
 import threading
 import urlparse
-import sys
+import socket
 import sqlite3
+import time
 
 # Third-parties
 import bs4 as BeautifulSoup
@@ -19,6 +20,9 @@ except NameError:
 from mangeur import URL_processer
 import settings
 
+# Force timeout to 5 seconds
+socket.setdefaulttimeout(settings.TIMEOUT)
+
 
 class Crawler(object):
 
@@ -27,6 +31,7 @@ class Crawler(object):
         self.nb_threads = 0
         self.nb_crawled = 0
         self.urls_crawled = []
+        self.robotstxt = {}    # TODO: a routine to empty this list sometimes
 
     def set_logfile(self, path, level=logging.DEBUG):
         self.logger = logging.getLogger(__name__)
@@ -74,34 +79,82 @@ class Crawler(object):
         self.urls_crawled.append(url)
         scheme = urlparse.urlparse(url).scheme
         hostname = urlparse.urlparse(url).hostname
-        rp = RobotFileParser(url="%s://%s/robots.txt" % (scheme, hostname))
 
-        try:
-            rp.read()
+        # Check if the robots.txt allows us to crawl this url
+        rp = self.get_robot_parser(scheme, hostname)
+        if rp.can_fetch(settings.USER_AGENT, url):
+            headers = {
+                'User-Agent': settings.USER_AGENT,
+            }
 
-            if rp.can_fetch(settings.USER_AGENT, url):
-                headers = {
-                    'User-Agent': settings.USER_AGENT,
-                }
+            self.logger.debug("Start fetching %s" % url)
+            try:
+                req = requests.get(url,
+                                   headers=headers,
+                                   timeout=settings.TIMEOUT)
+            except Exception as e:
+                self.logger.info("Unable to request %s (type: %s)" %
+                                 (url, type(e).__name__))
+                self.on_thread_finished()
+                return None
 
+            if req.status_code == 200:
+                urls = URL_processer(req)
 
-
-                req = requests.get(url, headers=headers)
-
-                if req.status_code == 200:
-                    self.logger.debug("Start fetching %s" % url)
-                    urls = URL_processer(req)
-
-                    # Add only url not already crawled
-                    not_crawled = [u for u in urls if u not in self.urls_crawled]
-                    self.queue.extend(not_crawled)
-                    self.logger.info("%s crawled, %s outlink retrieved" %
-                                (url, len(not_crawled)))
-                else:
-                    self.logger.warning("Error when requesting %s: HTTP response %s" % (url, req.status_code))
+                # Add only url not already crawled
+                not_crawled = [u for u in urls if u not in self.urls_crawled]
+                self.queue.extend(not_crawled)
+                self.logger.info(
+                    "%s crawled, %s outlink retrieved" %
+                    (url, len(not_crawled))
+                )
             else:
-                self.logger.info("Crawling %s is forbidden by robots.txt rules" % url)
-        except:
-            self.logger.info("Erros when reading robots.txt from %s" % url)
+                self.logger.warning(
+                    "Error when requesting %s: HTTP response %s" %
+                    (url, req.status_code)
+                )
+        else:
+            self.logger.info("Crawling %s is forbidden by robots.txt rules" % url)
 
         self.on_thread_finished()
+
+    def get_robot_parser(self, scheme, hostname):
+        """
+        Returns the robot parser object for the hostname given. If the domain
+        has already been indexed, we check if the robots.txt is up to date,
+        otherwise we fetch it again.
+        """
+        rp = self.robotstxt.get(hostname, None)
+
+        if rp:
+            # If a robotparser already exists but his last
+            # update time is old, we update it
+            if rp.mtime() < (time.time() - settings.ROBOTS_TXT_CACHE):
+                self.logger.info("Refresh %s/robots.txt cache" % hostname)
+                try:
+                    rp.read()
+                except Exception, e:
+                    print(e)
+                    self.logger.info("Unable to get or parse %s/robots.txt" % hostname)
+                    rp.disallow_all = False
+                    rp.allow_all = True
+            else:
+                self.logger.debug("Retrieve cached %s/robots.txt" % hostname)
+        else:
+            # First (or very long) time we see this domain, create a new
+            # RobotFileParser and read it once
+            self.logger.info("First hit on %s/robots.txt" % hostname)
+            rp = RobotFileParser(url="%s://%s/robots.txt" % (scheme, hostname))
+            try:
+                rp.read()
+            except Exception, e:
+                print(e)
+                self.logger.info("Unable to get or parse %s/robots.txt" % hostname)
+                rp.disallow_all = False
+                rp.allow_all = True
+
+        # In any case, we update the last robotstxt fetched time
+        rp.modified()
+        self.robotstxt[hostname] = rp
+
+        return rp

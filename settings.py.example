@@ -9,6 +9,8 @@ START_URLS = ('http://www.aau.dk',
 
 MAX_THREADS = 1
 
+TIMEOUT = 5.0  # in seconds
+
 ROBOTS_TXT_CACHE = 60 * 5
 
 USER_AGENT = 'LeFatCrawler'
