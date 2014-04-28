@@ -10,7 +10,7 @@ import argparse
 import peewee
 
 from crawler import Crawler
-from models import Page, WordCount
+from models import *
 import settings
 
 
@@ -20,7 +20,8 @@ def syncdb(data):
     print("Creating tables...")
     try:
         Page.create_table()
-        WordCount.create_table()
+        WordPage.create_table()
+        Word.create_table()
     except peewee.OperationalError as e:
         print("An error occured: ", end='')
         print(e)
@@ -31,8 +32,9 @@ def syncdb(data):
 def cleandb(data):
     """ Remove every old entries """
     print("Cleaning old database...")
-    WordCount.delete().execute()
+    WordPage.delete().execute()
     Page.delete().execute()
+    Word.delete().execute()
     print("Done!")
 
 

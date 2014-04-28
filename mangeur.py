@@ -36,8 +36,8 @@ def URL_processer(request):
         content_hash='',
     )
 
-    WordCount.insert_many(
-        [{'word': word, 'occurences': nb, 'page': page.id}
+    WordPage.insert_many(
+        [{'word': word, 'frequency': nb, 'page': page.id}
             for (word, nb) in counts.iteritems()]
     ).execute()
 
