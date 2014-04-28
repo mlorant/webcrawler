@@ -14,11 +14,18 @@ class Page(peewee.Model):
     class Meta:
         database = DATABASE
 
+class Word(peewee.Model):
+    word = peewee.CharField()
+    frequency = peewee.DecimalField()
 
-class WordCount(peewee.Model):
+    class Meta:
+        database = DATABASE
+
+
+class WordPage(peewee.Model):
     page = peewee.ForeignKeyField(Page)
     word = peewee.CharField()
-    occurences = peewee.IntegerField()
+    frequency = peewee.DecimalField()
     tfidf = peewee.DecimalField(default=0)
 
     class Meta:

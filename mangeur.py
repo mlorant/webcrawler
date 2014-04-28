@@ -38,7 +38,7 @@ def URL_processer(request):
 
     total_words = float(sum(v for k, v in counts.iteritems()))
 
-    WordCount.insert_many(
+    WordPage.insert_many(
         [{'word': word, 'occurences': nb / total_words, 'page': page.id}
             for (word, nb) in counts.iteritems()]
     ).execute()
