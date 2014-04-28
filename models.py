@@ -6,13 +6,16 @@ import peewee
 from settings import DATABASE
 
 
+# URL max size:
+# http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers # noqa
 class Page(peewee.Model):
-    url = peewee.CharField(unique=True)
+    url = peewee.CharField(max_length=2048)
     date_update = peewee.DateTimeField(default=datetime.now)
     content_hash = peewee.CharField()
 
     class Meta:
         database = DATABASE
+
 
 class Word(peewee.Model):
     word = peewee.CharField()
@@ -25,7 +28,7 @@ class Word(peewee.Model):
 class WordPage(peewee.Model):
     page = peewee.ForeignKeyField(Page)
     word = peewee.CharField()
-    frequency = peewee.DecimalField()
+    frequency = peewee.DecimalField(auto_round=True)
     tfidf = peewee.DecimalField(default=0)
 
     class Meta:

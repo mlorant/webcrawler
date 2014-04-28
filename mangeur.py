@@ -39,7 +39,7 @@ def URL_processer(request):
     total_words = float(sum(v for k, v in counts.iteritems()))
 
     WordPage.insert_many(
-        [{'word': word, 'occurences': nb / total_words, 'page': page.id}
+        [{'word': word, 'frequency': (nb / total_words) * 100, 'page': page.id}
             for (word, nb) in counts.iteritems()]
     ).execute()
 
@@ -50,7 +50,7 @@ def URL_processer(request):
 
     return filtered
 
-if __name__ == "__main__":   
+if __name__ == "__main__":
     database = SqliteDatabase('peewee.db')
     database.connect()
 
