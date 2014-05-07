@@ -21,7 +21,7 @@ class Page(peewee.Model):
 
 class Word(peewee.Model):
     word = peewee.CharField()
-    frequency = peewee.DecimalField(auto_round=True)
+    frequency = peewee.IntegerField()
 
     class Meta:
         database = DATABASE
@@ -30,7 +30,7 @@ class Word(peewee.Model):
 class WordPage(peewee.Model):
     page = peewee.ForeignKeyField(Page)
     word = peewee.CharField()
-    frequency = peewee.DecimalField(auto_round=True)
+    frequency = peewee.IntegerField()
     tfidf = peewee.DecimalField(auto_round=True, default=0)
 
     class Meta:

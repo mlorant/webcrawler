@@ -39,7 +39,7 @@ def URL_processer(request):
     total_words = float(sum(v for k, v in counts.iteritems()))
 
     WordPage.insert_many(
-        [{'word': word, 'frequency': (nb / total_words) * 100, 'page': page.id}
+        [{'word': word, 'frequency': nb, 'page': page.id}
             for (word, nb) in counts.iteritems()]
     ).execute()
 
