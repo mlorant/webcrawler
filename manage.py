@@ -27,12 +27,14 @@ def syncdb(data):
     """ Synchronize the database by creating tables """
     print("Creating tables...")
 
-    for k, v in get_model_classes():
-        try:
-            v.create_table()
-        except peewee.OperationalError as e:
-            print("An error occured: ", end='')
-            print(e)
+    try:
+        models.Page.create_table()
+        models.Word.create_table()
+        models.Link.create_table()
+        models.WordPage.create_table()
+    except peewee.OperationalError as e:
+        print("An error occured: ", end='')
+        print(e)
 
     print("Done!")
 
