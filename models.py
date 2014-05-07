@@ -24,7 +24,7 @@ class Word(peewee.Model):
     """ Represent word available on the web and the number
     of documents where they appear """
     word = peewee.CharField()
-    frequency = peewee.DecimalField(auto_round=True)
+    frequency = peewee.IntegerField()
 
     class Meta:
         database = DATABASE
@@ -35,7 +35,7 @@ class WordPage(peewee.Model):
     the page. Also store the computed TF/IDF score for it"""
     page = peewee.ForeignKeyField(Page)
     word = peewee.CharField()
-    frequency = peewee.DecimalField(auto_round=True)
+    frequency = peewee.IntegerField()
     tfidf = peewee.DecimalField(auto_round=True, default=0)
 
     class Meta:
