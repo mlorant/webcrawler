@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 settings.py
 *.log
+pagerank.txt
 
 # C extensions
 *.so
