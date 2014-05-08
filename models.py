@@ -14,7 +14,9 @@ class Page(peewee.Model):
     """ Represent one page of the web """
     url = peewee.CharField(max_length=2048)
     date_update = peewee.DateTimeField(default=datetime.now)
-    content_hash = peewee.CharField()
+    content_hash = peewee.CharField(default='')
+    crawled = peewee.BooleanField(default=False)
+    title = peewee.CharField(max_length=1024, default='')
 
     class Meta:
         database = DATABASE

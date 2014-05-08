@@ -1,3 +1,4 @@
 peewee
 beautifulsoup4
 requests
+numpy

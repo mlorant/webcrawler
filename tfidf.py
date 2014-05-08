@@ -29,7 +29,6 @@ def compute_tfidf():
     wordpage = defaultdict(int)
     for wp in WordPage.select().iterator():
         val = wp.frequency * log(nb_documents/words[wp.word])
-        print val
         update_query = WordPage.update(tfidf = val).where(WordPage.id == wp.id)
         update_query.execute()
 
@@ -51,7 +50,7 @@ def tfdidf_query(query):
 
 
     similarity = {}
-    
+
 
     for url in Page.select(Page.url).iterator():
         dj = [0] * size_query
@@ -69,7 +68,6 @@ def tfdidf_query(query):
 def boolean_query(query):
     nb_documents = Page.select(Page.url).count()
     size_query = Word.select().where(Word.word << query).count()
-
     q = []
     word_pos = {}
     i = 0
@@ -79,10 +77,7 @@ def boolean_query(query):
         i += 1
 
     norm_q = LA.norm(q)
-
-
     similarity = {}
-    
 
     for url in Page.select(Page.url).iterator():
         dj = [0] * size_query
@@ -95,11 +90,10 @@ def boolean_query(query):
         else:
             similarity[url.url] = dot(q, dj) / (norm_q * norm_dj)
 
-    sorted_sim = sorted(similarity.iteritems(), key = itemgetter(1), reverse = True)
+    sorted_sim = sorted(similarity.iteritems(), key = itemgetter(1), reverse=True)
     return sorted_sim
 
 if __name__ == "__main__":
-    database = MySQLDatabase('webcrawler', user='root', passwd='kR4jzlo3')
-    database.connect()
-    sim = boolean_query(["le", "la", "twitter"])
+    settings.DATABASE.connect()
+    sim = tfdidf_query(["porn"])
     print(sim)

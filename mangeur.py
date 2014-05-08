@@ -1,4 +1,5 @@
 from urllib2 import urlopen
+import urlparse
 from bs4 import BeautifulSoup, Comment
 from collections import Counter
 import re
@@ -22,6 +23,12 @@ def URL_processer(request):
     # Get all text
     data = soup.findAll(text=True)
 
+    title = soup.findAll('title')
+    if title:
+        title = title[0]
+    else:
+        title = ''
+
     # Transform to string
     string = unicode.join(u'\n', map(unicode, data))
     string = string.replace('\n', ' ')
@@ -31,10 +38,7 @@ def URL_processer(request):
     counts.update(word.lower() for word in string.split() if re.match('^[a-zA-Z0-9_-]+$', word))
 
     # Update DB with counts
-    page = Page.get_or_create(
-        url=my_url,
-        content_hash='',
-    )
+    page = Page.get_or_create(url=my_url)
 
     total_words = float(sum(v for k, v in counts.iteritems()))
 
@@ -45,21 +49,25 @@ def URL_processer(request):
 
     # get URLs
     urls = soup.findAll("a")
-    regex = re.compile(r'^http')
-    filtered = [(i['href'], i.text) for i in urls
-                if i.has_attr('href') and regex.search(i['href'])]
+
+    filtered = [(urlparse.urljoin(my_url, i['href']), i.text) for i in urls
+                if i.has_attr('href') and not i['href'].startswith('mailto:')]
 
     out_pages = {}
     for href, text in filtered:
-        out_pages[href] = (Page.get_or_create(url=href, content_hash=''), text)
+        out_pages[href] = (Page.get_or_create(url=href), text)
 
     if out_pages:
         already_links = Link.select().where(Link.inbound == page.id)
         excluded = [l.target.id for l in already_links]
-        Link.insert_many(
-            [{'inbound': page.id, 'target': tgt.id, 'title': title}
+        links = [{'inbound': page.id, 'target': tgt.id, 'title': title}
                 for (tgt, title) in out_pages.values() if tgt.id not in excluded]
-        ).execute()
+        if links:
+            Link.insert_many(links).execute()
+
+    page.crawled = True
+    page.title = title
+    page.save()
 
     return out_pages.keys()
 

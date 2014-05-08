@@ -84,6 +84,7 @@ class Digraph(object):
                 raise AdditionError("%s is missing from the node_incidence" % n)
 
         if v in self.node_neighbors[u] and u in self.node_incidence[v]:
+            return
             raise AdditionError("Edge (%s, %s) already in digraph" % (u, v))
         else:
             self.node_neighbors[u].append(v)
@@ -100,22 +101,8 @@ class Digraph(object):
 
     def __str__(self):
         return "\n".join(
-            "(%s, %s)" % (k, v) 
+            "(%s, %s)" % (k, v)
             for k, v in self.node_neighbors.items() if v)
-
-
-def generate_graph():
-    graph = Digraph()
-    links = Link.select()
-    for link in links:
-        if not graph.has_node(link.inbound.id):
-            graph.add_node(link.inbound.id, link.inbound)
-        if not graph.has_node(link.target.id):
-            graph.add_node(link.target.id, link.target)
-
-        graph.add_edge((link.inbound.id, link.target.id))
-
-    return graph
 
 
 def pagerank(graph, dumping_factor=0.85, max_iter=100, min_delta=0.00001):
@@ -140,6 +127,7 @@ def pagerank(graph, dumping_factor=0.85, max_iter=100, min_delta=0.00001):
 
     nodes = graph.nodes()
     graph_size = len(nodes)
+    print graph_size
     if graph_size == 0:
         return {}
     min_value = (1.0-dumping_factor)/graph_size  # value for nodes without inbound links
@@ -165,8 +153,29 @@ def pagerank(graph, dumping_factor=0.85, max_iter=100, min_delta=0.00001):
     return pagerank
 
 
+def generate_graph():
+    graph = Digraph()
+    links = Link.select()
+    for link in links:
+        if not graph.has_node(link.inbound.id):
+            graph.add_node(link.inbound.id, link.inbound)
+        if not graph.has_node(link.target.id):
+            graph.add_node(link.target.id, link.target)
+
+        graph.add_edge((link.inbound.id, link.target.id))
+
+    return graph
+
+
 if __name__ == "__main__":
     g = generate_graph()
-    print g
-    print "--------"
-    print pagerank(g)
+
+    import operator
+    pages = sorted(pagerank(g).iteritems(),
+                   key=operator.itemgetter(1), reverse=True)
+
+    with open('pagerank.txt', 'w') as f:
+        for idx, elem in enumerate(top30):
+            f.write(
+                ("%6s & %s - %s\n" %
+                    (idx, elem, g.node_attrs[elem[0]].url)).encode('utf8'))
