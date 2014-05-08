@@ -42,12 +42,14 @@ def syncdb(data):
 def cleandb(data):
     """ Remove every old entries """
     print("Cleaning old database...")
-    for k, v in reversed(get_model_classes()):
-        try:
-            v.delete().execute()
-        except peewee.OperationalError as e:
-            print("An error occured: ", end='')
-            print(e)
+    try:
+        models.WordPage.delete().execute()
+        models.Link.delete().execute()
+        models.Word.delete().execute()
+        models.Page.delete().execute()
+    except peewee.OperationalError as e:
+        print("An error occured: ", end='')
+        print(e)
     print("Done!")
 
 
@@ -65,7 +67,12 @@ def run(data):
 
     a = Crawler()
     a.set_logfile(data['logfile'])
-    a.start()
+    try:
+        a.start()
+    except KeyboardInterrupt:
+        print("Stopping the crawler in few seconds...")
+        a.stop = True
+        sys.exit(0)
 
 
 def tfidf(data):
