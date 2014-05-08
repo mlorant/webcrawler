@@ -17,7 +17,7 @@ except NameError:
     from urllib.robotparser import RobotFileParser
 
 # Own files
-from mangeur import URL_processer
+from htmlparser import URL_processer
 import settings
 
 # Force timeout to 5 seconds
