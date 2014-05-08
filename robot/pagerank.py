@@ -127,7 +127,6 @@ def pagerank(graph, dumping_factor=0.85, max_iter=100, min_delta=0.00001):
 
     nodes = graph.nodes()
     graph_size = len(nodes)
-    print graph_size
     if graph_size == 0:
         return {}
     min_value = (1.0-dumping_factor)/graph_size  # value for nodes without inbound links
@@ -167,15 +166,15 @@ def generate_graph():
     return graph
 
 
-if __name__ == "__main__":
+def compute_pagerank():
     g = generate_graph()
 
     import operator
     pages = sorted(pagerank(g).iteritems(),
                    key=operator.itemgetter(1), reverse=True)
 
-    with open('pagerank.txt', 'w') as f:
-        for idx, elem in enumerate(top30):
+    with open('logs/pagerank.txt', 'w') as f:
+        for idx, elem in enumerate(pages):
             f.write(
                 ("%6s & %s - %s\n" %
                     (idx, elem, g.node_attrs[elem[0]].url)).encode('utf8'))

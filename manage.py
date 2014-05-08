@@ -11,9 +11,10 @@ import peewee
 import inspect
 import sys
 
-from crawler import Crawler
-import models
-from tfidf import compute_tfidf
+from robot import models
+from robot.crawler import Crawler
+from robot.pagerank import compute_pagerank
+from robot.tfidf import compute_tfidf, tfdidf_query, boolean_query
 import settings
 
 
@@ -81,14 +82,36 @@ def tfidf(data):
     print("Done!")
 
 
+def query(data):
+    if data['method'] == 'tfidf':
+        sim = tfdidf_query(sum([x.split(' ') for x in data['words']], []))
+    else:
+        query = ' '.join(data['words'])
+        sim = boolean_query(query)
+
+    for item in sim:
+        print(item)
+
+
+def pagerank(data):
+    print("Start computing Pagerank...")
+    compute_pagerank()
+    print("Done! Results available in logs/")
+
+
 # List of commands available
-commands = {'syncdb': syncdb, 'cleandb': cleandb, 'run': run, 'tfidf': tfidf}
+commands = {'syncdb': syncdb, 'cleandb': cleandb, 'run': run,
+            'tfidf': tfidf, 'query': query, 'pagerank': pagerank}
 
 # Argument parser definition
 parser = argparse.ArgumentParser(
     description='Allows to manage database schema and run the crawler')
 parser.add_argument('command', type=str, choices=commands.keys(),
                     help='Command to execute')
+parser.add_argument('words', type=str, nargs='*',
+                    help='words')
+parser.add_argument('--method', dest='method', default="tfidf",
+                    help='Query method', choices=['tfidf', 'boolean'])
 parser.add_argument('--keep-logs', dest='keeplogs', action='store_true',
                     help='Keep previous logs of the crawler')
 parser.add_argument('--logfile', dest='logfile', default=settings.LOGFILE,
@@ -96,5 +119,6 @@ parser.add_argument('--logfile', dest='logfile', default=settings.LOGFILE,
 
 # Parse and execute the command asked
 args = parser.parse_args()
-data = {'logfile': args.logfile, 'keeplogs': args.keeplogs}
+data = {'logfile': args.logfile, 'keeplogs': args.keeplogs,
+        'method': args.method, 'words': args.words}
 commands[args.command](data)

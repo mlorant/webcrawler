@@ -89,10 +89,3 @@ def boolean_query(query):
             similarity.append(url.url)
 
     return similarity
-
-if __name__ == "__main__":
-    settings.DATABASE.connect()
-    sim = tfdidf_query(["commons", "creative", "license"])
-    #sim = boolean_query("license and creative and commons")
-    for item in sim:
-        print item
