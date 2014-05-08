@@ -49,9 +49,7 @@ def tfdidf_query(query):
 
     norm_q = LA.norm(q)
 
-
-    similarity = {}
-    
+    similarity = {}   
 
     for url in Page.select(Page.url).iterator():
         dj = [0] * size_query
@@ -68,43 +66,36 @@ def tfdidf_query(query):
 
 def boolean_query(query):
     nb_documents = Page.select(Page.url).count()
-    size_query = Word.select().where(Word.word << query).count()
 
-    q = []
+    parsed_query = query.replace("or","").replace("and","").replace("(","").replace(")","")
+    word_query = parsed_query.split()
+
     word_pos = {}
     i = 0
-    for word in query:
-        q.append(1.0)
+    for word in word_query:
         word_pos[word] = i
         i += 1
 
-    norm_q = LA.norm(q)
-
-
-    similarity = {}
-    
+    similarity = []    
 
     for url in Page.select(Page.url).iterator():
-        dj = [0] * size_query
-        for words in WordPage.select().join(Page).where(Page.url == url.url, Word.word << query).iterator():
-            dj[word_pos[words.word]] = 1.0
+        dj = [False] * len(word_query)
+        for words in WordPage.select().join(Page).where(Page.url == url.url, Word.word <<  word_query).iterator():
+            dj[word_pos[words.word]] = True
+        to_eval = ''.join(query)
 
-        norm_dj = LA.norm(dj)
-        if (norm_dj == 0):
-            similarity[url.url] = 0
-        else:
-            similarity[url.url] = dot(q, dj) / (norm_q * norm_dj)
+        for key in word_query:
+            to_eval = to_eval.replace(key, str(dj[word_pos[key]]))
+        res = eval(to_eval)
+        if (res):
+            similarity.append(url.url)
 
-    sorted_sim = sorted(similarity.iteritems(), key = itemgetter(1), reverse = True)
-    return sorted_sim
+    return similarity    
+
 
 if __name__ == "__main__":
-    database = MySQLDatabase('webcrawler', user='root', passwd='kR4jzlo3')
-    database.connect()
-    sim = boolean_query(["le", "la", "twitter"])
-    print(sim)
-
-    
-        
-
-
+    settings.DATABASE.connect()
+    sim = tfdidf_query(["commons", "creative", "license"])
+    #sim = boolean_query("license and creative and commons")
+    for item in sim:
+        print item
