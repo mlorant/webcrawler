@@ -32,6 +32,7 @@ class Crawler(object):
         self.nb_crawled = 0
         self.urls_crawled = []
         self.robotstxt = {}    # TODO: a routine to empty this list sometimes
+        self.stop = False
 
     def set_logfile(self, path, level=logging.DEBUG):
         self.logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class Crawler(object):
         """
         Start to run the crawl with start URL defined.
         """
-        while self.nb_threads < settings.MAX_THREADS and len(self.queue) > 0:
+        while self.can_start_thread():
             self.start_thread()
 
     def start_thread(self):
@@ -67,22 +68,27 @@ class Crawler(object):
         Callback called at the end of the fetching of one page
         """
         self.nb_crawled += 1
-
-        if len(self.queue) > 0 and self.nb_crawled < settings.MAX_PAGES_TO_CRAWL:
+        self.nb_threads -= 1
+        while self.can_start_thread():
             self.start_thread()
+
+    def can_start_thread(self):
+        return (len(self.queue) > 0
+                and self.nb_crawled < settings.MAX_PAGES_TO_CRAWL
+                and self.nb_threads < settings.MAX_THREADS
+                and not self.stop)
 
     def fetch_page(self, url):
         """
         Fetch and parse the page. Returns a BeautifulSoup object
         """
-
         self.urls_crawled.append(url)
         scheme = urlparse.urlparse(url).scheme
         hostname = urlparse.urlparse(url).hostname
 
         # Check if the robots.txt allows us to crawl this url
         rp = self.get_robot_parser(scheme, hostname)
-        if rp.can_fetch(settings.USER_AGENT, url):
+        if rp.can_fetch(settings.USER_AGENT, url.encode('utf8')):
             headers = {
                 'User-Agent': settings.USER_AGENT,
             }
@@ -102,11 +108,15 @@ class Crawler(object):
                 urls = URL_processer(req)
 
                 # Add only url not already crawled
-                not_crawled = [u for u in urls if u not in self.urls_crawled]
-                self.queue.extend(not_crawled)
+                not_crawled = set(u for u in urls if u not in self.urls_crawled)
+
+                inlink = set(u for u in not_crawled if urlparse.urlparse(u).hostname == hostname)
+                outlink = [u for u in not_crawled if u not in inlink]
+                self.queue = list(inlink) + self.queue + outlink
+
                 self.logger.info(
-                    "%s crawled, %s outlink retrieved" %
-                    (url, len(not_crawled))
+                    "%s crawled, <%s inlink, %s outlink>" %
+                    (url, len(inlink), len(outlink))
                 )
             else:
                 self.logger.warning(
