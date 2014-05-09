@@ -95,6 +95,7 @@ def boolean_query(query):
 
     return similarity
 
+
 def user_query(query, userid):
     similarity = {}
     nb_documents = Page.select(Page.url).count()
@@ -131,10 +132,9 @@ def user_query(query, userid):
             similarity[url.url] = 0
         else:
             similarity[url.url] = dot(q, dj) / (norm_q * norm_dj)
-        
+
     sorted_sim = sorted(similarity.iteritems(), key=itemgetter(1), reverse=True)
     return sorted_sim
-
 
 
 if __name__ == "__main__":

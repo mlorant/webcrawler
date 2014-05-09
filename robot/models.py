@@ -55,7 +55,7 @@ class Link(peewee.Model):
 
 
 class User(peewee.Model):
-    """ Store every link between pages """
+    """ User profile. Just store a name for the moment """
     name = peewee.CharField()
 
     class Meta:
@@ -63,6 +63,7 @@ class User(peewee.Model):
 
 
 class UserQuery(peewee.Model):
+    """ Previous query keywords for users """
     user = peewee.ForeignKeyField(User)
     word = peewee.CharField()
     frequency = peewee.IntegerField()

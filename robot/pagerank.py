@@ -85,7 +85,6 @@ class Digraph(object):
 
         if v in self.node_neighbors[u] and u in self.node_incidence[v]:
             return
-            raise AdditionError("Edge (%s, %s) already in digraph" % (u, v))
         else:
             self.node_neighbors[u].append(v)
             self.node_incidence[v].append(u)
@@ -153,6 +152,7 @@ def pagerank(graph, dumping_factor=0.85, max_iter=100, min_delta=0.00001):
 
 
 def generate_graph():
+    """ Generate the directional graph needed to compute pageranks """
     graph = Digraph()
     links = Link.select()
     for link in links:
@@ -167,6 +167,7 @@ def generate_graph():
 
 
 def compute_pagerank():
+    """ Compute and write the pagerank ranking into a file """
     g = generate_graph()
 
     import operator
