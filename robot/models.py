@@ -5,7 +5,7 @@ import os
 import peewee
 from settings import DATABASE
 
-__all__ = ['Page', 'Word', 'WordPage', 'Link']
+__all__ = ['Page', 'Word', 'WordPage', 'Link', 'User', 'UserQuery']
 
 
 # URL max size:
@@ -48,7 +48,7 @@ class Link(peewee.Model):
     """ Store every link between pages """
     inbound = peewee.ForeignKeyField(Page, related_name="inbound")
     target = peewee.ForeignKeyField(Page, related_name="target")
-    title = peewee.CharField()
+    title = peewee.CharField(default='')
 
     class Meta:
         database = DATABASE
