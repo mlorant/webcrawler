@@ -33,6 +33,8 @@ def syncdb(data):
         models.Word.create_table()
         models.Link.create_table()
         models.WordPage.create_table()
+        models.User.create_table()
+        models.UserQuery.create_table()
     except peewee.OperationalError as e:
         print("An error occured: ", end='')
         print(e)
@@ -48,10 +50,29 @@ def cleandb(data):
         models.Link.delete().execute()
         models.Word.delete().execute()
         models.Page.delete().execute()
+        models.UserQuery.delete().execute()
+        models.User.delete().execute()
     except peewee.OperationalError as e:
         print("An error occured: ", end='')
         print(e)
     print("Done!")
+
+
+def fill_user_database(data):
+    # Create users
+    maxime = models.User.get_or_create(name='maxime')
+    xavier = models.User.get_or_create(name='xavier')
+    marc = models.User.get_or_create(name='marc')
+
+    # Create word preferences
+    models.UserQuery.create(user=maxime, word='python', frequency=5)
+    models.UserQuery.create(user=maxime, word='tarantino', frequency=3)
+    models.UserQuery.create(user=xavier, word='licence', frequency=4)
+    models.UserQuery.create(user=xavier, word='creative', frequency=4)
+    models.UserQuery.create(user=xavier, word='commons', frequency=4)
+    models.UserQuery.create(user=marc, word='paris', frequency=3)
+    models.UserQuery.create(user=marc, word='c++', frequency=6)
+    models.UserQuery.create(user=marc, word='qatar', frequency=4)
 
 
 def run(data):
@@ -101,7 +122,8 @@ def pagerank(data):
 
 # List of commands available
 commands = {'syncdb': syncdb, 'cleandb': cleandb, 'run': run,
-            'tfidf': tfidf, 'query': query, 'pagerank': pagerank}
+            'tfidf': tfidf, 'query': query, 'pagerank': pagerank,
+            'filluser': fill_user_database}
 
 # Argument parser definition
 parser = argparse.ArgumentParser(

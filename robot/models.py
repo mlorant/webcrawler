@@ -52,3 +52,20 @@ class Link(peewee.Model):
 
     class Meta:
         database = DATABASE
+
+
+class User(peewee.Model):
+    """ Store every link between pages """
+    name = peewee.CharField()
+
+    class Meta:
+        database = DATABASE
+
+
+class UserQuery(peewee.Model):
+    user = peewee.ForeignKeyField(User)
+    word = peewee.CharField()
+    frequency = peewee.IntegerField()
+
+    class Meta:
+        database = DATABASE
