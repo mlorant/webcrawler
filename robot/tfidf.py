@@ -1,6 +1,11 @@
 from collections import defaultdict
 from numpy import dot
 from numpy import linalg as LA
+import sys
+
+
+from os.path import dirname
+sys.path.insert(0, dirname(dirname(__file__)))
 
 from models import *
 import settings
@@ -92,13 +97,15 @@ def boolean_query(query):
 
 def user_query(query, userid):
     similarity = {}
-
+    nb_documents = Page.select(Page.url).count()
     user_query = []
-    for word in UserQuery.select().where(UserQuery.id == userid).order_by(UserQuery.frequency.desc()).iterator():
+    for word in UserQuery.select().where(UserQuery.user == userid).order_by(UserQuery.frequency.desc()).iterator():
         user_query.append(word.word)
 
-    query.extend(user_query)
+    print user_query
 
+    query.extend(user_query)
+    size_query = Word.select().where(Word.word << query).count()
     q = []
     word_pos = {}
     i = 0
@@ -109,19 +116,31 @@ def user_query(query, userid):
         else:
             word_pos[word.word] = i, 1
         i += 1
+
     norm_q = LA.norm(q)
 
     similarity = {}
-    for url in Page.select(Page.url).iterator():
+    for url in Page.select(Page.url).where(Page.crawled == 1).iterator():
         dj = [0] * size_query
         for words in WordPage.select().join(Page).where(Page.url == url.url, Word.word << query).iterator():
             pos, weight = word_pos[words.word]
             dj[pos] = float(words.tfidf) * weight
+
         norm_dj = LA.norm(dj)
         if (norm_dj == 0):
             similarity[url.url] = 0
         else:
             similarity[url.url] = dot(q, dj) / (norm_q * norm_dj)
-
+        
     sorted_sim = sorted(similarity.iteritems(), key=itemgetter(1), reverse=True)
     return sorted_sim
+
+
+
+if __name__ == "__main__":
+    settings.DATABASE.connect()
+
+    urls = user_query(["Django"], 7)
+
+    for url in urls:
+        print(url)

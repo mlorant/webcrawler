@@ -112,7 +112,7 @@ class Crawler(object):
 
                 inlink = set(u for u in not_crawled if urlparse.urlparse(u).hostname == hostname)
                 outlink = [u for u in not_crawled if u not in inlink]
-                self.queue = list(inlink) + self.queue + outlink
+                #self.queue = list(inlink) + self.queue + outlink
 
                 self.logger.info(
                     "%s crawled, <%s inlink, %s outlink>" %

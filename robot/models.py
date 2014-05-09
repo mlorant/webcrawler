@@ -5,7 +5,7 @@ import os
 import peewee
 from settings import DATABASE
 
-__all__ = ['Page', 'Word', 'WordPage', 'Link']
+__all__ = ['Page', 'Word', 'WordPage', 'Link', 'User', 'UserQuery']
 
 
 # URL max size:

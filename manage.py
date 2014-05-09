@@ -66,13 +66,13 @@ def fill_user_database(data):
 
     # Create word preferences
     models.UserQuery.create(user=maxime, word='python', frequency=5)
-    models.UserQuery.create(user=maxime, word='tarantino', frequency=3)
-    models.UserQuery.create(user=xavier, word='licence', frequency=4)
+    models.UserQuery.create(user=maxime, word='php', frequency=3)
+    models.UserQuery.create(user=xavier, word='tarantino', frequency=4)
     models.UserQuery.create(user=xavier, word='creative', frequency=4)
     models.UserQuery.create(user=xavier, word='commons', frequency=4)
     models.UserQuery.create(user=marc, word='paris', frequency=3)
     models.UserQuery.create(user=marc, word='c++', frequency=6)
-    models.UserQuery.create(user=marc, word='qatar', frequency=4)
+    models.UserQuery.create(user=marc, word='reinhardt', frequency=4)
 
 
 def run(data):
