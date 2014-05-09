@@ -60,13 +60,13 @@ def URL_processer(request):
     if out_pages:
         already_links = Link.select().where(Link.inbound == page.id)
         excluded = [l.target.id for l in already_links]
-        links = [{'inbound': page.id, 'target': tgt.id, 'title': title}
+        links = [{'inbound': page.id, 'target': tgt.id}
                 for (tgt, title) in out_pages.values() if tgt.id not in excluded]
         if links:
             Link.insert_many(links).execute()
 
     page.crawled = True
-    page.title = title
+    #page.title = title
     page.save()
 
     return out_pages.keys()

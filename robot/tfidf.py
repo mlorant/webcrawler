@@ -89,3 +89,39 @@ def boolean_query(query):
             similarity.append(url.url)
 
     return similarity
+
+def user_query(query, userid):
+    similarity = {}
+
+    user_query = []
+    for word in UserQuery.select().where(UserQuery.id == userid).order_by(UserQuery.frequency.desc()).iterator():
+        user_query.append(word.word)
+
+    query.extend(user_query)
+
+    q = []
+    word_pos = {}
+    i = 0
+    for word in Word.select().where(Word.word << query).iterator():
+        q.append(log(float(nb_documents)/float(word.frequency)))
+        if (word.word in user_query):
+            word_pos[word.word] = i, 0.5
+        else:
+            word_pos[word.word] = i, 1
+        i += 1
+    norm_q = LA.norm(q)
+
+    similarity = {}
+    for url in Page.select(Page.url).iterator():
+        dj = [0] * size_query
+        for words in WordPage.select().join(Page).where(Page.url == url.url, Word.word << query).iterator():
+            pos, weight = word_pos[words.word]
+            dj[pos] = float(words.tfidf) * weight
+        norm_dj = LA.norm(dj)
+        if (norm_dj == 0):
+            similarity[url.url] = 0
+        else:
+            similarity[url.url] = dot(q, dj) / (norm_q * norm_dj)
+
+    sorted_sim = sorted(similarity.iteritems(), key=itemgetter(1), reverse=True)
+    return sorted_sim
