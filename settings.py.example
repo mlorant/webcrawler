@@ -1,11 +1,9 @@
 from peewee import SqliteDatabase
 
-DATABASE = SqliteDatabase()
+DATABASE = SqliteDatabase(threadlocals=True)
 
 START_URLS = ('http://www.aau.dk',
-              'http://www.insa-rennes.fr',
-              'http://www.d8.tv',
-              'https://www.facebook.com')
+              'http://www.python.org')
 
 MAX_THREADS = 1
 
@@ -17,4 +15,4 @@ USER_AGENT = 'LeFatCrawler'
 
 MAX_PAGES_TO_CRAWL = 1000
 
-LOGFILE = 'crawl.log'
+LOGFILE = 'logs/crawl.log'
